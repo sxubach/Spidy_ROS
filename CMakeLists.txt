@@ -38,7 +38,7 @@ include_directories(
 add_executable(socket_client_topic_server src/client_socket_topic_PC.cpp)
 target_link_libraries(socket_client_topic_server ${catkin_LIBRARIES})
 
-add_executable(test_pwm_client src/test_PWMaction_client.cpp)
+add_executable(test_pwm_client src/test/test_PWMaction_client.cpp)
 target_link_libraries(test_pwm_client ${catkin_LIBRARIES})
 
 
