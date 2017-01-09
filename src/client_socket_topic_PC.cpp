@@ -11,9 +11,9 @@
 
 
 // Socket address
-#define HOST "192.168.0.42"
 #define PORT 8888
 
+char HOST[16];
 char pwm_values[12] = {60,90,60,5, 45,30,45,20, 60,0,85,60};// {0,0,0,0,0,0,0,0,0,0,0,0};//
 float distance_U = 0;
 int accel_X = 0;
@@ -46,6 +46,7 @@ void execute(const communication_pkg::PWMGoalConstPtr& goal, Server* as)
 
 int main(int argc, char** argv)
 {
+	std::string str;
 	int s,n;
 	struct sockaddr_in addr;
 	char buff[256];
@@ -58,6 +59,11 @@ int main(int argc, char** argv)
 	ros::param::get("/raspberry", raspberry);
 	printf("It is %s that the raspberry is connected\n",raspberry ? "true" : "false");
 
+	ros::param::get("/HOST", str);
+	printf("The raspberry ip is %s\n", str.c_str());
+	strcpy(HOST,str.c_str());
+	printf("The raspberry ip is %s\n", HOST);
+
 	if (raspberry){
 		s = socket(AF_INET, SOCK_STREAM, 0);
 		if (s==-1)
@@ -68,6 +74,7 @@ int main(int argc, char** argv)
 	    	addr.sin_family = AF_INET;
 		addr.sin_port = htons(PORT);
 		inet_aton(HOST, &addr.sin_addr);
+		//inet_aton(HOST2, &addr.sin_addr);
 
 		if (connect(s,(struct sockaddr *) &addr,sizeof(addr))<0){
 			perror("Error connecting socket:");
