@@ -7,11 +7,19 @@
 #include <sstream>
 #include "Algorithm_lib/debug.h"
 
-void sensorCallback(){
+
+#include <communication_pkg/sensors.h>
+
+
+
+
+void sensorCallback(communication_pkg::sensors msg){
   //Sensor
 
 
 }
+
+
 
 int main(int argc, char **argv)
 {
@@ -31,6 +39,8 @@ int main(int argc, char **argv)
   ros::Rate loop_rate(1000);
 
   //Initialize pub/subs
+
+  ros::Subscriber sensor = n.subscribe("Arduino/sensors",1000, sensorCallback);
 
   #ifdef DEBUG_H_INCLUDED
 
