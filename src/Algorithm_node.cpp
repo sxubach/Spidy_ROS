@@ -51,8 +51,18 @@ int main(int argc, char **argv)
   int time_loop = 0;
 
   float currentTime = 0;
-  float InputVec[12] = {};
-  float OutputVec[12] = {};
+  float InputVec[12] = {};//Input vector to the network
+  float OutputVec[12] = {};//Output vector of the network
+  float StepSize = 5; //Size of the possition change in a ts
+  float Out_hlim = 180; //Up limit possition
+  float Out_llim = -180; //Down limit positon
+
+  float Fitness = 0;
+
+  float currentPos[12] = {};//Current
+
+  char pwm_desired[12]={60,90,60,65, 45,30,45,20, 60,0,85,60};
+
   //Initialize pub/subs
 
   ros::Subscriber sensor = n.subscribe("Arduino/sensors",1000, sensorCallback);
@@ -65,8 +75,6 @@ int main(int argc, char **argv)
 
   PWMAction_def Actuator("action/pwm", true);
   //Actuator.waitForServer();
-
-  char pwm_desired[12]={60,90,60,65, 45,30,45,20, 60,0,85,60};
 
   #ifdef DEBUG_H_INCLUDED
   ROS_INFO("Init action");
@@ -106,14 +114,43 @@ int main(int argc, char **argv)
     //Simulation/Execution loop
 
     time_loop = 0;
+
+    memset(currentPos, 0, sizeof(currentPos));
+
     while(time_loop<time_loop_limit){
 
-      //Sensor read
+      //Sensor read implementation
+
+      for(int i=0;i<12;i++)
+      {
+        InputVec[i]=currentPos[i];
+      }
+
       currentTime = time_loop*ts;
 
       Spidy_pool.evaluateCurrent(InputVec,OutputVec);
 
-      //Send pwm
+
+      //Process outputs
+
+
+      for(int i=0;i<12;i++)
+      {
+        OutputVec[i] = OutputVec[i]*StepSize;
+
+        currentPos[i] += OutputVec[i]*ts;
+
+        if(currentPos[i]>Out_hlim)
+        currentPos[i]=Out_hlim;
+
+        if(currentPos[i]<Out_llim)
+        currentPos[i]=Out_llim;
+      }
+
+      //Send pwm(currentPos)
+      //Que cony envio???
+
+
 
       ros::spinOnce();
 
@@ -121,11 +158,22 @@ int main(int argc, char **argv)
       time_loop++;
     }
 
+    //Calculate fitness
+
+    //Evaluation ended
+
+      Spidy_pool.assignfitness(Fitness);
+
+    //Next genome
       if(Spidy_pool.SpeciesVec[Spidy_pool.currentSpecies].GenomesVec.size()==Spidy_pool.currentGenome+1)
       {
         if(Spidy_pool.SpeciesVec.size()==Spidy_pool.currentSpecies+1){
-            //Spidy_pool.randomFitness();
+            #ifdef DEBUG_ALGO_H_INCLUDED
+            ROS_INFO("Generating new generation...");
+            #endif //DEBUG_ALGO_H_INCLUDED
+
             Spidy_pool.newGeneration();
+
             #ifdef DEBUG_ALGO_H_INCLUDED
             ROS_INFO("New Generation: %d",Spidy_pool.generation);
             #endif //DEBUG_ALGO_H_INCLUDED
