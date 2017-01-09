@@ -7,11 +7,14 @@
 #include <sstream>
 #include "Algorithm_lib/debug.h"
 
+#include <actionlib/client/simple_action_client.h>
 
 #include <communication_pkg/sensors.h>
+#include <communication_pkg/PWMAction.h>
 
+typedef actionlib::SimpleActionClient<communication_pkg::PWMAction> PWMAction_def;
 
-
+PWMAction_def Actuator("action/pwm", true);
 
 void sensorCallback(communication_pkg::sensors msg){
   //Sensor
@@ -19,7 +22,16 @@ void sensorCallback(communication_pkg::sensors msg){
 
 }
 
+void sendPWM(char *pwm)
+{
+	communication_pkg::PWMGoal goal;
 
+    for (int i=0;i<12;i++){
+      goal.pwm[i] = pwm[i];
+      //printf("goal.pwm[%d] = %d\n",i,pwm_desired[i]);
+    }
+  Actuator.sendGoal(goal);
+}
 
 int main(int argc, char **argv)
 {
@@ -47,6 +59,15 @@ int main(int argc, char **argv)
   ROS_INFO("Init pub");
 
   #endif //DEBUG_H_INCLUDED
+
+
+  //Initialize actionlib
+
+
+  Actuator.waitForServer();
+
+  char pwm_desired[12]={60,90,60,65, 45,30,45,20, 60,0,85,60};
+
 
 
   //Initalization of the pool
