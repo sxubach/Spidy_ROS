@@ -37,9 +37,7 @@ int main(int argc, char **argv)
 {
 
   #ifdef DEBUG_H_INCLUDED
-
   ROS_INFO("Debugging active");
-
   #endif //DEBUG_H_INCLUDED
 
   ros::init(argc, argv, "Algorithm_node");
@@ -48,18 +46,19 @@ int main(int argc, char **argv)
 
   ros::NodeHandle n;
 
-  ros::Rate loop_rate(1000);
+  ros::Rate loop_rate(1/ts);
 
   int time_loop = 0;
 
+  float currentTime = 0;
+  float InputVec[12] = {};
+  float OutputVec[12] = {};
   //Initialize pub/subs
 
   ros::Subscriber sensor = n.subscribe("Arduino/sensors",1000, sensorCallback);
 
   #ifdef DEBUG_H_INCLUDED
-
   ROS_INFO("Init pub");
-
   #endif //DEBUG_H_INCLUDED
 
   //Initialize actionlib
@@ -70,26 +69,20 @@ int main(int argc, char **argv)
   char pwm_desired[12]={60,90,60,65, 45,30,45,20, 60,0,85,60};
 
   #ifdef DEBUG_H_INCLUDED
-
   ROS_INFO("Init action");
-
   #endif //DEBUG_H_INCLUDED
 
   //Initalization of the pool
   Pool Spidy_pool(12,12);
 
   #ifdef DEBUG_H_INCLUDED
-
   ROS_INFO("Pool created");
-
   #endif //DEBUG_H_INCLUDED
 
   Spidy_pool.initializePool();
 
   #ifdef DEBUG_H_INCLUDED
-
   ROS_INFO("Pool initialized");
-
   #endif //DEBUG_H_INCLUDED
 
 
@@ -99,21 +92,33 @@ int main(int argc, char **argv)
     //Start training
 
     #ifdef DEBUG_ALGO_H_INCLUDED
-    ROS_INFO("Specie: %d. Genome: %d\n",Spidy_pool.currentSpecies,Spidy_pool.currentGenome);
+    ROS_INFO("Specie: %d. Genome: %d",Spidy_pool.currentSpecies,Spidy_pool.currentGenome);
     #endif //DEBUG_ALGO_H_INCLUDED
 
 
     //Generate the network for the current Genome
     Spidy_pool.SpeciesVec[Spidy_pool.currentSpecies].GenomesVec[Spidy_pool.currentGenome].generateNetwork();
 
+    #ifdef DEBUG_H_INCLUDED
+    ROS_INFO("Network generated");
+    #endif //DEBUG_H_INCLUDED
+
     //Simulation/Execution loop
 
     time_loop = 0;
     while(time_loop<time_loop_limit){
 
+      //Sensor read
+      currentTime = time_loop*ts;
+
+      Spidy_pool.evaluateCurrent(InputVec,OutputVec);
+
+      //Send pwm
+
       ros::spinOnce();
 
       loop_rate.sleep();
+      time_loop++;
     }
 
       if(Spidy_pool.SpeciesVec[Spidy_pool.currentSpecies].GenomesVec.size()==Spidy_pool.currentGenome+1)
@@ -122,7 +127,7 @@ int main(int argc, char **argv)
             //Spidy_pool.randomFitness();
             Spidy_pool.newGeneration();
             #ifdef DEBUG_ALGO_H_INCLUDED
-            ROS_INFO("New Generation: %d\n",Spidy_pool.generation);
+            ROS_INFO("New Generation: %d",Spidy_pool.generation);
             #endif //DEBUG_ALGO_H_INCLUDED
         }else{
           Spidy_pool.currentSpecies ++;
