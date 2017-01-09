@@ -11,7 +11,6 @@
 
 
 // Socket address
-//#define HOST2 "192.168.0.55"
 #define PORT 8888
 
 char HOST[16];
