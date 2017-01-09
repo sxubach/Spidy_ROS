@@ -7,7 +7,7 @@ import socket
 import smbus
 
 #Socket address
-HOST = '192.168.0.42'
+HOST = '192.168.0.55'
 PORT = 8888
 
 #i2c addresses
@@ -31,53 +31,61 @@ def init_accelerometer():
 
 ## I2C configuration start
 # for RPI version 1, use "bus = smbus.SMBus(0)"
-print 'Configuring i2c ...'
+#print 'Configuring i2c ...'
 bus = smbus.SMBus(1)
 
 init_accelerometer()
-print 'Done!'
+#print 'Done!'
 ## I2C configuration end
 
-
+'''
 ## Socket configuration start
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-print 'Socket created'
+#print 'Socket created'
 
 s.bind((HOST, PORT))
-print 'Socket bind succesful'
+#print 'Socket bind succesful'
 
 s.listen(10) #number of tolerable unaccepted connections
 c, addr = s.accept()
-print 'Connected with ' + addr[0] + ':' + str(addr[1])
+#print 'Connected with ' + addr[0] + ':' + str(addr[1])
 ## Socket configuration end
-
+'''
 
 state = 0
 ## Main loop
 while(1):
-	#print 'Reading from Arduino ...'
-	# print 'Ultrasound start'
+	##print 'Reading from Arduino ...'
+	# #print 'Ultrasound start'
 	bus.write_byte(arduino_address, 100)
 
 	low = bus.read_byte(arduino_address)
 	high = bus.read_byte(arduino_address)
 	distance_U = (high << 8) | low
 
-	print 'low =' + str(low)
-	print 'high =' + str(high)
-	print 'distance_U =' + str(distance_U)
+	#print 'low =' + str(low)
+	#print 'high =' + str(high)
+	#print 'distance_U =' + str(distance_U)
 
 	
-	# print 'Accelerometer'
+	# #print 'Accelerometer'
 	accel_X = read_word(accel_address, 0x3b)
 	accel_Y = read_word(accel_address, 0x3d)
 	accel_Z = read_word(accel_address, 0x3f)
 
-	# print 'Gyroscope'
+	# #print 'Gyroscope'
 	gyro_X = read_word(accel_address, 0x43)
 	gyro_Y = read_word(accel_address, 0x45)
 	gyro_Z = read_word(accel_address, 0x47)
-
+'''
+	print distance_U
+	print accel_X
+	print accel_Y
+	print accel_Z
+	print gyro_X
+	print gyro_Y
+	print gyro_Z
+'''
 	try:	
 		if state==0:	
 			state = ord(c.recv(1024))-10	#same protocol as i2c
@@ -92,9 +100,7 @@ while(1):
 			c.send(str(distance_U))
 			state = 0;
 		if state==101:
-			#print 'state 101'
 			c.send(str(accel_X))
-			#print 'accel_X sent'
 			state = 0;
 		if state==102:
 			c.send(str(accel_Y))
