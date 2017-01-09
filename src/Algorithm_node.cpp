@@ -111,7 +111,10 @@ int main(int argc, char **argv)
     time_loop = 0;
     while(time_loop<time_loop_limit){
 
+      ros::spinOnce();
 
+      loop_rate.sleep();
+    }
 
       if(Spidy_pool.SpeciesVec[Spidy_pool.currentSpecies].GenomesVec.size()==Spidy_pool.currentGenome+1)
       {
@@ -129,13 +132,6 @@ int main(int argc, char **argv)
           Spidy_pool.currentGenome++;
       }
 
-
-
-      ros::spinOnce();
-
-      loop_rate.sleep();
-
-    }
   }
 
 
