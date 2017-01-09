@@ -17,8 +17,8 @@
 
 
 //Try to change to a dynamic definition of the inputs
-volatile int Inputs=2+1;//Number of inputs + bias
-volatile int Outputs=1;
+const int Inputs = 12+1;//Number of inputs + bias
+const int Outputs = 12;
 
 const float DeltaDisjoint = 2.0;
 const float DeltaWeights = 0.4;
@@ -49,7 +49,7 @@ class gene  // This class is the gene that creates a genome
     bool enabled;
     int innovation;
 };
-
+;
 class neuron
 {
     public:
@@ -140,17 +140,14 @@ inline Pool::Pool(int inputval,int outputval)
         Population=PopulationT;
         inputsnum=inputval+1;
         outputsnum=outputval;
-
-        Inputs = inputsnum;
-        Outputs = outputval;
-}
+};
 
 inline specie::specie(){
         GenomesVec.clear();
         topFitness=0;
         staleness=0;
         averageFitness=0;
-        }
+      };
 
 inline genome::genome(){
         GenesVec.clear();
@@ -165,7 +162,7 @@ inline genome::genome(){
         mutationRates[4]=EnableMutationChance;
         mutationRates[5]=DisableMutationChance;
         mutationRates[6]=StepSize;
-        }
+      };
 
 inline gene::gene(){
         into=0;
@@ -173,12 +170,12 @@ inline gene::gene(){
         weight=0.0;
         enabled=true;
         innovation=0;
-        }
+      };
 
 inline neuron::neuron(){
         IncomingVec.clear();
         value=0.0;
-        }
+      };
 
 genome basicGenome(int* innovation);//Creates a new genome;
 

@@ -289,7 +289,8 @@ void genome::linkMutate(bool forceBias,int* innovation)
 int genome::randomNeuron(bool nonInput)
 {
     // return a random neuron form the existing ones
-    bool neurons[MaxNodes+Outputs]={};
+    //bool neurons[MaxNodes+Outputs]={};
+    bool *neurons = (bool*)calloc(MaxNodes+Outputs,sizeof(bool));
 
     if (!nonInput)
     {
@@ -959,7 +960,8 @@ void Pool::randomFitness()
 void genome::generateNetwork()
 {
 
-    bool active[MaxNodes+Outputs] = {};
+    //bool active[MaxNodes+Outputs] = {};
+    bool *active = (bool*)calloc(MaxNodes+Outputs,sizeof(bool));
     bool found = false;
     Network.clear();
     Network.resize(MaxNodes+Outputs);

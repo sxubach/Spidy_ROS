@@ -5,12 +5,24 @@
 #include "std_msgs/String.h"
 #include "Algorithm_lib/NEAT.h"
 #include <sstream>
+#include "Algorithm_lib/debug.h"
 
+void sensorCallback(){
+  //Sensor
+
+
+}
 
 int main(int argc, char **argv)
 {
 
-  ros::init(argc, argv, "main");
+  #ifdef DEBUG_H_INCLUDED
+
+  ROS_INFO("Debugging active");
+
+  #endif //DEBUG_H_INCLUDED
+
+  ros::init(argc, argv, "Algorithm_node");
 
   srand (time(NULL));
 
@@ -20,11 +32,30 @@ int main(int argc, char **argv)
 
   //Initialize pub/subs
 
-  //Pool Spidy_pool(12,12);
+  #ifdef DEBUG_H_INCLUDED
 
-  //ROS_INFO(Inputs);
+  ROS_INFO("Init pub");
+
+  #endif //DEBUG_H_INCLUDED
+
 
   //Initalization of the pool
+  Pool Spidy_pool(12,12);
+
+  #ifdef DEBUG_H_INCLUDED
+
+  ROS_INFO("Pool created");
+
+  #endif //DEBUG_H_INCLUDED
+
+  Spidy_pool.initializePool();
+
+  #ifdef DEBUG_H_INCLUDED
+
+  ROS_INFO("Pool initialized");
+
+  #endif //DEBUG_H_INCLUDED
+
 
   while (ros::ok())
   {
