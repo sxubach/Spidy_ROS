@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 
 
     //Generate the network for the current Genome
-    pool_spidy.SpeciesVec[Spidy_pool.currentSpecies].GenomesVec[Spidy_pool.currentGenome].generateNetwork();
+    Spidy_pool.SpeciesVec[Spidy_pool.currentSpecies].GenomesVec[Spidy_pool.currentGenome].generateNetwork();
 
     //Simulation/Execution loop
 
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 
 
 
-      if(pool_spidy.SpeciesVec[Spidy_pool.currentSpecies].GenomesVec.size()==Spidy_pool.currentGenome+1)
+      if(Spidy_pool.SpeciesVec[Spidy_pool.currentSpecies].GenomesVec.size()==Spidy_pool.currentGenome+1)
       {
         if(Spidy_pool.SpeciesVec.size()==Spidy_pool.currentSpecies+1){
             //Spidy_pool.randomFitness();
