@@ -1,9 +1,5 @@
 <launch>
 
-	<node pkg ="Algorithm_node"
-		type="algorith_node"
-		name="algorithm_node"
-		output="screen">
-  	</node>
-</launch>
+	<node name="Algorithm_node" type="Algorithm_node.cpp" pkg ="communication_pkg" output="screen" />
 
+</launch>

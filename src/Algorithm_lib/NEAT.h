@@ -140,6 +140,9 @@ inline Pool::Pool(int inputval,int outputval)
         Population=PopulationT;
         inputsnum=inputval+1;
         outputsnum=outputval;
+
+        Inputs = inputsnum;
+        Outputs = outputval;
 }
 
 inline specie::specie(){
