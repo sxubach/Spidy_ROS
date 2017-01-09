@@ -1,0 +1,10 @@
+<launch>
+	<param name="raspberry" value="false"/>
+
+	<node pkg ="communication_pkg"
+		type="socket_client_topic_server"
+		name="socket_client_topic_server"
+		output="screen">
+  	</node>
+</launch>
+

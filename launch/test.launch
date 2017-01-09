@@ -1,0 +1,8 @@
+<launch>
+	<node pkg ="communication_pkg"
+		type="test_pwm_client"
+		name="test_pwm_client"
+		output="screen">
+  	</node>
+</launch>
+
