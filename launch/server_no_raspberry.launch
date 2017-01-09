@@ -1,15 +1,10 @@
 <launch>
 	<param name="raspberry" value="false"/>
+	<param name="HOST" value="192.168.000.055"/>
 
 	<node pkg ="communication_pkg"
 		type="socket_client_topic_server"
 		name="socket_client_topic_server"
-		output="screen">
-  	</node>
-
-	<node pkg ="communication_pkg"
-		type="test_pwm_client"
-		name="test_pwm_client"
 		output="screen">
   	</node>
 </launch>
