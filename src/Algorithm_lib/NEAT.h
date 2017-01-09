@@ -17,8 +17,8 @@
 
 
 //Try to change to a dynamic definition of the inputs
-const int Inputs=2+1;//Number of inputs + bias
-const int Outputs=1;
+volatile int Inputs=2+1;//Number of inputs + bias
+volatile int Outputs=1;
 
 const float DeltaDisjoint = 2.0;
 const float DeltaWeights = 0.4;
@@ -78,7 +78,8 @@ class genome
     float fitness;
     std::vector<neuron> Network;
     std::vector<int> Networkorder;
-    int Layer[MaxNodes]={0};
+    //int Layer[MaxNodes]={0};
+    int *Layer = (int*)calloc(MaxNodes,sizeof(int));
     int maxneuron;
     int globalRank;
     float mutationRates[7];

@@ -1,0 +1,9 @@
+<launch>
+
+	<node pkg ="Algorithm_node"
+		type="algorith_node"
+		name="algorithm_node"
+		output="screen">
+  	</node>
+</launch>
+
