@@ -18,8 +18,12 @@ FILES
   PWM.action
 )
 
-generate_messages(
-DEPENDENCIES
+add_message_files(
+  FILES
+  sensors.msg
+) 
+
+generate_messages(DEPENDENCIES
   actionlib_msgs
   std_msgs
 )
@@ -27,7 +31,7 @@ DEPENDENCIES
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES communication_pkg
-#  CATKIN_DEPENDS roscpp rospy std_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
 #  DEPENDS system_lib
 )
 
