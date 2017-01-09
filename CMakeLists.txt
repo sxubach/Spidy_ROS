@@ -40,7 +40,7 @@ add_definitions(-std=c++11)
 add_executable(socket_client_topic_server src/client_socket_topic_PC.cpp)
 target_link_libraries(socket_client_topic_server ${catkin_LIBRARIES})
 
-add_executable(test_pwm_client src/test_PWMaction_client.cpp)
+add_executable(test_pwm_client src/test/test_PWMaction_client.cpp)
 target_link_libraries(test_pwm_client ${catkin_LIBRARIES})
 
 add_executable(Algorithm_node src/Algorithm_node.cpp src/Algorithm_lib/NEAT.cpp)
