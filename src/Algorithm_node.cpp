@@ -14,7 +14,6 @@
 
 typedef actionlib::SimpleActionClient<communication_pkg::PWMAction> PWMAction_def;
 
-PWMAction_def Actuator("action/pwm", true);
 
 void sensorCallback(communication_pkg::sensors msg){
   //Sensor
@@ -22,7 +21,7 @@ void sensorCallback(communication_pkg::sensors msg){
 
 }
 
-void sendPWM(char *pwm)
+void sendPWM(char *pwm,PWMAction_def* Actuator)
 {
 	communication_pkg::PWMGoal goal;
 
@@ -30,7 +29,7 @@ void sendPWM(char *pwm)
       goal.pwm[i] = pwm[i];
       //printf("goal.pwm[%d] = %d\n",i,pwm_desired[i]);
     }
-  Actuator.sendGoal(goal);
+  Actuator->sendGoal(goal);
 }
 
 int main(int argc, char **argv)
@@ -60,15 +59,18 @@ int main(int argc, char **argv)
 
   #endif //DEBUG_H_INCLUDED
 
-
   //Initialize actionlib
 
-
-  Actuator.waitForServer();
+  PWMAction_def Actuator("action/pwm", true);
+  //Actuator.waitForServer();
 
   char pwm_desired[12]={60,90,60,65, 45,30,45,20, 60,0,85,60};
 
+  #ifdef DEBUG_H_INCLUDED
 
+  ROS_INFO("Init action");
+
+  #endif //DEBUG_H_INCLUDED
 
   //Initalization of the pool
   Pool Spidy_pool(12,12);
@@ -90,6 +92,8 @@ int main(int argc, char **argv)
 
   while (ros::ok())
   {
+
+
 
 
 
