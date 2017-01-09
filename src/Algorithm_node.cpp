@@ -13,7 +13,8 @@
 #include <communication_pkg/PWMAction.h>
 
 typedef actionlib::SimpleActionClient<communication_pkg::PWMAction> PWMAction_def;
-
+float ts = 0.01;
+int time_loop_limit = 1000; //(1000*ts)=10 sec
 
 void sensorCallback(communication_pkg::sensors msg){
   //Sensor
@@ -48,6 +49,8 @@ int main(int argc, char **argv)
   ros::NodeHandle n;
 
   ros::Rate loop_rate(1000);
+
+  int time_loop = 0;
 
   //Initialize pub/subs
 
@@ -93,13 +96,46 @@ int main(int argc, char **argv)
   while (ros::ok())
   {
 
+    //Start training
+
+    #ifdef DEBUG_ALGO_H_INCLUDED
+    ROS_INFO("Specie: %d. Genome: %d\n",Spidy_pool.currentSpecies,Spidy_pool.currentGenome);
+    #endif //DEBUG_ALGO_H_INCLUDED
+
+
+    //Generate the network for the current Genome
+    pool_spidy.SpeciesVec[Spidy_pool.currentSpecies].GenomesVec[Spidy_pool.currentGenome].generateNetwork();
+
+    //Simulation/Execution loop
+
+    time_loop = 0;
+    while(time_loop<time_loop_limit){
 
 
 
+      if(pool_spidy.SpeciesVec[Spidy_pool.currentSpecies].GenomesVec.size()==Spidy_pool.currentGenome+1)
+      {
+        if(Spidy_pool.SpeciesVec.size()==Spidy_pool.currentSpecies+1){
+            //Spidy_pool.randomFitness();
+            Spidy_pool.newGeneration();
+            #ifdef DEBUG_ALGO_H_INCLUDED
+            ROS_INFO("New Generation: %d\n",Spidy_pool.generation);
+            #endif //DEBUG_ALGO_H_INCLUDED
+        }else{
+          Spidy_pool.currentSpecies ++;
+          Spidy_pool.currentGenome = 0;
+        }
+        }else{
+          Spidy_pool.currentGenome++;
+      }
 
-    ros::spinOnce();
 
-    loop_rate.sleep();
+
+      ros::spinOnce();
+
+      loop_rate.sleep();
+
+    }
   }
 
 
