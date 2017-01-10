@@ -31,8 +31,12 @@ float vel_X=0, vel_Y=0, vel_Z=0;
 float X=0, Y=0, Z=0; 
 float T = 0.5;
 
-typedef actionlib::SimpleActionServer<communication_pkg::PWMAction> Server;
+int s,n=1;
+struct sockaddr_in addr;
+bool raspberry = false, first = true;
 
+
+typedef actionlib::SimpleActionServer<communication_pkg::PWMAction> Server;
 
 void execute(const communication_pkg::PWMGoalConstPtr& goal, Server* as)
 {
@@ -47,32 +51,16 @@ void execute(const communication_pkg::PWMGoalConstPtr& goal, Server* as)
 	as->setSucceeded();
 }
 
-int main(int argc, char** argv)
+
+int connect_socket()
 {
-	std::string str;
-	int s,n;
-	struct sockaddr_in addr;
-	char buff[256];
-	bool raspberry = false, first = true;
-
-	ros::init(argc, argv, "socket_client_topic_server");
-	ROS_INFO("Initializing socket_client_topic_server\n");
-	ros::NodeHandle h;
-	
-	ros::param::get("/raspberry", raspberry);
-	ROS_INFO("It is %s that the raspberry is connected\n",raspberry ? "true" : "false");
-
-	ros::param::get("/HOST", str);
-	strcpy(HOST,str.c_str());
-	ROS_INFO("The raspberry ip is %s\n", HOST);
-
 	if (raspberry){
 		s = socket(AF_INET, SOCK_STREAM, 0);
 		if (s==-1)
 			perror("Creat socket:");
 		else
-			ROS_INFO("Socket created\n");
-	
+			printf("Socket created\n");
+
 	    	addr.sin_family = AF_INET;
 		addr.sin_port = htons(PORT);
 		inet_aton(HOST, &addr.sin_addr);
@@ -81,128 +69,137 @@ int main(int argc, char** argv)
 			perror("Error connecting socket:");
 			exit(0);
 		}else{
-			ROS_INFO("Socket connected\n");
+			printf("Socket connected\n");
 		}
 	}
+	return s;
+}
+
+int reconnect(int s,int err)
+{
+	//n = read(s,buff,len);
+	if (err == 0) {
+		printf("Socket not connected --> Reconnecting ...\n");
+		close(s);
+		s = connect_socket();
+		n = 1;
+		return s;
+	} else if (err<0) {
+		perror("Read Socket Error");
+	}
+	return s;
+}
+
+int main(int argc, char** argv)
+{
+	std::string str;
+	char buff[256];
+
+	ros::init(argc, argv, "socket_client_topic_server");
+	printf("Initializing socket_client_topic_server\n");
+	ros::NodeHandle h;
+	
+	// Load ROS params from launcher
+	ros::param::get("/raspberry", raspberry);
+	printf("It is %s that the raspberry is connected\n",raspberry ? "true" : "false");
+
+	ros::param::get("/HOST", str);
+	strcpy(HOST,str.c_str());
+	printf("The raspberry ip is %s\n", HOST);
 
 	// Initialize Action
 	Server server(h, "/arduino/pwm", boost::bind(&execute, _1, &server), false);
 	server.start();
-	ROS_INFO("Action /arduino/pwm launched\n");
+	printf("Action /arduino/pwm launched\n");
 	
 	// Initialize Publisher
 	ros::Publisher sensor_pub = h.advertise<communication_pkg::sensors>("/arduino/sensors", 1);
 	communication_pkg::sensors msg;
-	ROS_INFO("Publisher /arduino/sensors launched\n");
+	printf("Publisher /arduino/sensors launched\n");
 
+
+	// Socket communication
+	s = connect_socket();
 
 	// Main loop
 	while(1){	
-	// Comunicating through socket
+		// Comunicating through socket
 		if (raspberry){
-		// Ultrasound
+			printf("\n\n\n");
 			sprintf(buff,"%c",char(42));
 			write(s,buff,strlen(buff));
 
+		// Ultrasound
 			memset(buff,0,strlen(buff));
 			n = read(s,buff,50);
-			if (n == 0)
-				ROS_INFO("nothing read\n");
-			else if (n<0)
-				perror("Read Ultrasound Error:");
 			distance_U = atoi(buff);
 			distance_U = float(distance_U)/58;
+			printf("distance_U = %f\n",distance_U);
+			write(s,"ack.",4);
 
 		// Accelerometer
-			write(s,"ack.",4);
 			memset(buff,0,strlen(buff));
 			n = read(s,buff,50);
-			if (n == 0)
-				ROS_INFO("nothing read\n");
-			else if (n<0)
-				perror("Read Ultrasound Error:");	
 			accel_X = atoi(buff);
-			ROS_INFO("accel_X = %d\n",accel_X);
-
+			printf("accel_X = %d\n",accel_X);
 			write(s,"ack.",4);
+
 			memset(buff,0,strlen(buff));
 			n = read(s,buff,50);
-			if (n == 0)
-				ROS_INFO("nothing read\n");
-			else if (n<0)
-				perror("Read Ultrasound Error:");
 			accel_Y = atoi(buff);
-			ROS_INFO("accel_Y = %d\n",accel_Y);
-
+			printf("accel_Y = %d\n",accel_Y);
 			write(s,"ack.",4);
+
 			memset(buff,0,strlen(buff));
 			n = read(s,buff,50);
-			if (n == 0)
-				ROS_INFO("nothing read\n");
-			else if (n<0)
-				perror("Read Ultrasound Error:");
 			accel_Z = atoi(buff);
-			ROS_INFO("accel_Z = %d\n",accel_Z);
+			printf("accel_Z = %d\n",accel_Z);
+			write(s,"ack.",4);
 
 		// Gyroscope
-			write(s,"ack.",4);
 			memset(buff,0,strlen(buff));
 			n = read(s,buff,50);
-			if (n == 0)
-				ROS_INFO("nothing read\n");
-			else if (n<0)
-				perror("Read Ultrasound Error:");
 			gyro_X = atoi(buff);
-			ROS_INFO("gyro_X = %d\n",gyro_X);
+			printf("gyro_X = %d\n",gyro_X);
+			write(s,"ack.",4);
 			
-			write(s,"ack.",4);
 			memset(buff,0,strlen(buff));
 			n = read(s,buff,50);
-			if (n == 0)
-				ROS_INFO("nothing read\n");
-			else if (n<0)
-				perror("Read Ultrasound Error:");
 			gyro_Y = atoi(buff);
-			ROS_INFO("gyro_Y = %d\n",gyro_Y);
-
+			printf("gyro_Y = %d\n",gyro_Y);
 			write(s,"ack.",4);
+
 			memset(buff,0,strlen(buff));
 			n = read(s,buff,50);
-			if (n == 0)
-				ROS_INFO("nothing read\n");
-			else if (n<0)
-				perror("Read Ultrasound Error:");
 			gyro_Z = atoi(buff);
-			ROS_INFO("gyro_Z = %d\n",gyro_Z);
+			printf("gyro_Z = %d\n",gyro_Z);
+			write(s,"ack.",4);
 
 		// PWM
-			for (int i=1;i<=12;i++){		
+			for (int i=1;i<=12;i++){	
 				n = read(s,buff,50);
-				if (n == 0)
-					ROS_INFO("nothing read\n");
-				else if (n<0)
-					perror("Read Ultrasound Error:");
 			
 				memset(buff,0,strlen(buff));
-				ROS_INFO("Sending pwm_values[%d] = %d\n",i-1,pwm_values[i-1]);
+				printf("Sending pwm_values[%d] = %d\n",i-1,pwm_values[i-1]);
 				sprintf(buff,"%c",char(pwm_values[i-1]+10));
 				write(s,buff,strlen(buff));
 			}
+			
+			s = reconnect(s,n);
+
 		}else{
-			ROS_INFO("distance_U = %f\n",distance_U);
-			ROS_INFO("accel_X = %d\n",accel_X);
-			ROS_INFO("accel_Y = %d\n",accel_Y);
-			ROS_INFO("accel_Z = %d\n",accel_Z);
-			ROS_INFO("gyro_X = %d\n",gyro_X);
-			ROS_INFO("gyro_Y = %d\n",gyro_X);
-			ROS_INFO("gyro_Z = %d\n",gyro_X);
+			printf("distance_U = %f\n",distance_U);
+			printf("accel_X = %d\n",accel_X);
+			printf("accel_Y = %d\n",accel_Y);
+			printf("accel_Z = %d\n",accel_Z);
+			printf("gyro_X = %d\n",gyro_X);
+			printf("gyro_Y = %d\n",gyro_X);
+			printf("gyro_Z = %d\n",gyro_X);
 
 			for (int i=0;i<=11;i++){		
-				ROS_INFO("Sending pwm_values[%d] = %d\n",i,pwm_values[i]);
+				printf("Sending pwm_values[%d] = %d\n",i,pwm_values[i]);
 			}
-
 		}
-		ROS_INFO("\n\n\n");
 
 	// Saving gravity force
 		if (first){
@@ -232,12 +229,13 @@ int main(int argc, char** argv)
 		msg.accel_Z = accel_Z - g_accel_Z;
 		msg.gyro_X = gyro_X - g_gyro_X;
 		msg.gyro_Y = gyro_Y - g_gyro_Y;
-		msg.gyro_Z = gyro_Z - g_gyro_Y;
+		msg.gyro_Z = gyro_Z - g_gyro_Z;
 		msg.t_stamp = ros::Time::now();
 		
 		sensor_pub.publish(msg);
 
 		ros::spinOnce();
+		ros::Duration(0.1).sleep();
 	}
 	return 0;
 }

@@ -119,6 +119,7 @@ while(1):
 			
 
 	except:
+		print 'Connection lost'
 		s.listen(10)
 		c, addr = s.accept()
 
