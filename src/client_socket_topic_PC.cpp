@@ -27,13 +27,12 @@ int gyro_X = 0, g_gyro_X = 0;
 int gyro_Y = 0, g_gyro_Y = 0;
 int gyro_Z = 0, g_gyro_Z = 0;
 
+float vel_X=0, vel_Y=0, vel_Z=0; 
+float X=0, Y=0, Z=0; 
+float T = 0.5;
+
 typedef actionlib::SimpleActionServer<communication_pkg::PWMAction> Server;
 
-void error(const char *msg)
-{
-    perror(msg);
-    exit(0);
-}
 
 void execute(const communication_pkg::PWMGoalConstPtr& goal, Server* as)
 {
@@ -102,93 +101,108 @@ int main(int argc, char** argv)
 	// Comunicating through socket
 		if (raspberry){
 		// Ultrasound
-			sprintf(buff,"%c",char(100+10));
+			sprintf(buff,"%c",char(42));
 			write(s,buff,strlen(buff));
-			////ROS_INFO("writen %s in socket\n",buff);	
 
 			memset(buff,0,strlen(buff));
-			n = read(s,buff,255);
+			n = read(s,buff,50);
+			if (n == 0)
+				ROS_INFO("nothing read\n");
+			else if (n<0)
+				perror("Read Ultrasound Error:");
 			distance_U = atoi(buff);
-			//HERE if (n == 0)
-				//ROS_INFO("nothing read\n");
-			//HERE else 
-			if (n<0)
-				perror("Read Ultrasound Error:");	
 			distance_U = float(distance_U)/58;
-			//ROS_INFO("distance_U = %f\n",distance_U);
 
 		// Accelerometer
-			sprintf(buff,"%c",char(101+10));
-			write(s,buff,strlen(buff));
+			write(s,"ack.",4);
 			memset(buff,0,strlen(buff));
-			n = read(s,buff,255);	
+			n = read(s,buff,50);
+			if (n == 0)
+				ROS_INFO("nothing read\n");
+			else if (n<0)
+				perror("Read Ultrasound Error:");	
 			accel_X = atoi(buff);
-			//ROS_INFO("accel_X = %d\n",accel_X);
+			ROS_INFO("accel_X = %d\n",accel_X);
 
-			sprintf(buff,"%c",char(102+10));
-			write(s,buff,strlen(buff));
+			write(s,"ack.",4);
 			memset(buff,0,strlen(buff));
-			n = read(s,buff,255);
+			n = read(s,buff,50);
+			if (n == 0)
+				ROS_INFO("nothing read\n");
+			else if (n<0)
+				perror("Read Ultrasound Error:");
 			accel_Y = atoi(buff);
-			//ROS_INFO("accel_Y = %d\n",accel_Y);
+			ROS_INFO("accel_Y = %d\n",accel_Y);
 
-			sprintf(buff,"%c",char(103+10));
-			write(s,buff,strlen(buff));
+			write(s,"ack.",4);
 			memset(buff,0,strlen(buff));
-			n = read(s,buff,255);
+			n = read(s,buff,50);
+			if (n == 0)
+				ROS_INFO("nothing read\n");
+			else if (n<0)
+				perror("Read Ultrasound Error:");
 			accel_Z = atoi(buff);
-			//ROS_INFO("accel_Z = %d\n",accel_Z);
+			ROS_INFO("accel_Z = %d\n",accel_Z);
 
 		// Gyroscope
-			sprintf(buff,"%c",char(104+10));
-			write(s,buff,strlen(buff));
+			write(s,"ack.",4);
 			memset(buff,0,strlen(buff));
-			n = read(s,buff,255);
+			n = read(s,buff,50);
+			if (n == 0)
+				ROS_INFO("nothing read\n");
+			else if (n<0)
+				perror("Read Ultrasound Error:");
 			gyro_X = atoi(buff);
-			//ROS_INFO("gyro_X = %d\n",gyro_X);
-
-			sprintf(buff,"%c",char(105+10));
-			write(s,buff,strlen(buff));
+			ROS_INFO("gyro_X = %d\n",gyro_X);
+			
+			write(s,"ack.",4);
 			memset(buff,0,strlen(buff));
-			n = read(s,buff,255);
+			n = read(s,buff,50);
+			if (n == 0)
+				ROS_INFO("nothing read\n");
+			else if (n<0)
+				perror("Read Ultrasound Error:");
 			gyro_Y = atoi(buff);
-			//ROS_INFO("gyro_Y = %d\n",gyro_Y);
+			ROS_INFO("gyro_Y = %d\n",gyro_Y);
 
-			sprintf(buff,"%c",char(106+10));
-			write(s,buff,strlen(buff));
+			write(s,"ack.",4);
 			memset(buff,0,strlen(buff));
-			n = read(s,buff,255);
+			n = read(s,buff,50);
+			if (n == 0)
+				ROS_INFO("nothing read\n");
+			else if (n<0)
+				perror("Read Ultrasound Error:");
 			gyro_Z = atoi(buff);
-			//ROS_INFO("gyro_Z = %d\n",gyro_Z);
+			ROS_INFO("gyro_Z = %d\n",gyro_Z);
 
 		// PWM
-			for (int i=1;i<=12;i++){			
-				sprintf(buff,"%c",char(i+10));
-				write(s,buff,strlen(buff));
+			for (int i=1;i<=12;i++){		
+				n = read(s,buff,50);
+				if (n == 0)
+					ROS_INFO("nothing read\n");
+				else if (n<0)
+					perror("Read Ultrasound Error:");
 			
 				memset(buff,0,strlen(buff));
-				read(s,buff,255);
-			
-				memset(buff,0,strlen(buff));
-				//ROS_INFO("Sending pwm_values[%d] = %d\n",i-1,pwm_values[i-1]);
+				ROS_INFO("Sending pwm_values[%d] = %d\n",i-1,pwm_values[i-1]);
 				sprintf(buff,"%c",char(pwm_values[i-1]+10));
 				write(s,buff,strlen(buff));
 			}
 		}else{
-			//ROS_INFO("distance_U = %f\n",distance_U);
-			//ROS_INFO("accel_X = %d\n",accel_X);
-			//ROS_INFO("accel_Y = %d\n",accel_Y);
-			//ROS_INFO("accel_Z = %d\n",accel_Z);
-			//ROS_INFO("gyro_X = %d\n",gyro_X);
-			//ROS_INFO("gyro_Y = %d\n",gyro_X);
-			//ROS_INFO("gyro_Z = %d\n",gyro_X);
+			ROS_INFO("distance_U = %f\n",distance_U);
+			ROS_INFO("accel_X = %d\n",accel_X);
+			ROS_INFO("accel_Y = %d\n",accel_Y);
+			ROS_INFO("accel_Z = %d\n",accel_Z);
+			ROS_INFO("gyro_X = %d\n",gyro_X);
+			ROS_INFO("gyro_Y = %d\n",gyro_X);
+			ROS_INFO("gyro_Z = %d\n",gyro_X);
 
 			for (int i=0;i<=11;i++){		
-				//ROS_INFO("Sending pwm_values[%d] = %d\n",i,pwm_values[i]);
+				ROS_INFO("Sending pwm_values[%d] = %d\n",i,pwm_values[i]);
 			}
 
 		}
-		//ROS_INFO("\n\n\n");
+		ROS_INFO("\n\n\n");
 
 	// Saving gravity force
 		if (first){
@@ -200,6 +214,16 @@ int main(int argc, char** argv)
 			g_gyro_Y = gyro_Y;
 			g_gyro_Z = gyro_Z;
 		}
+	
+	// Preprocesing
+		vel_X = vel_X + T*accel_X;
+		X = X + T*vel_X;
+		vel_Y = vel_Y + T*accel_Y;
+		Y = Y + T*vel_Y;
+		vel_Z = vel_Z + T*accel_Z;
+		Z = Z + T*vel_Z;
+
+
 
 	// Updating publisher values
 		msg.distance_U = distance_U;
@@ -209,11 +233,11 @@ int main(int argc, char** argv)
 		msg.gyro_X = gyro_X - g_gyro_X;
 		msg.gyro_Y = gyro_Y - g_gyro_Y;
 		msg.gyro_Z = gyro_Z - g_gyro_Y;
+		msg.t_stamp = ros::Time::now();
 		
 		sensor_pub.publish(msg);
 
 		ros::spinOnce();
-		//ros::Duration(2).sleep();
 	}
 	return 0;
 }
