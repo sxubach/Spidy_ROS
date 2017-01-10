@@ -35,6 +35,8 @@ int s,n=1;
 struct sockaddr_in addr;
 bool raspberry = false, first = true;
 
+ros::Time begin, end;
+
 
 typedef actionlib::SimpleActionServer<communication_pkg::PWMAction> Server;
 
@@ -120,7 +122,8 @@ int main(int argc, char** argv)
 
 	// Socket communication
 	s = connect_socket();
-
+	
+	begin = ros::Time::now();
 	// Main loop
 	while(1){	
 		// Comunicating through socket
@@ -207,35 +210,48 @@ int main(int argc, char** argv)
 			g_accel_X = accel_X;
 			g_accel_Y = accel_Y;
 			g_accel_Z = accel_Z;
-			g_gyro_X = gyro_X;
-			g_gyro_Y = gyro_Y;
-			g_gyro_Z = gyro_Z;
 		}
 	
 	// Preprocesing
+		end = ros::Time::now();
+		T = end.toSec() - begin.toSec();
+		printf("execution time T=%f",T);
+
+		accel_X = accel_X - g_accel_X;
 		vel_X = vel_X + T*accel_X;
 		X = X + T*vel_X;
+
+		accel_Y = accel_Y - g_accel_Y;
 		vel_Y = vel_Y + T*accel_Y;
 		Y = Y + T*vel_Y;
+
+		accel_Z = accel_Z - g_accel_Z;
 		vel_Z = vel_Z + T*accel_Z;
 		Z = Z + T*vel_Z;
-
+		
+		begin = ros::Time::now();
 
 
 	// Updating publisher values
 		msg.distance_U = distance_U;
-		msg.accel_X = accel_X - g_accel_X;
-		msg.accel_Y = accel_Y - g_accel_Y;
-		msg.accel_Z = accel_Z - g_accel_Z;
-		msg.gyro_X = gyro_X - g_gyro_X;
-		msg.gyro_Y = gyro_Y - g_gyro_Y;
-		msg.gyro_Z = gyro_Z - g_gyro_Z;
+		msg.X = X;
+		msg.Y = Y;
+		msg.Z = Z;
+		msg.vel_X = vel_X;
+		msg.vel_Y = vel_Y;
+		msg.vel_Z = vel_Z;
+		msg.accel_X = accel_X;
+		msg.accel_Y = accel_Y;
+		msg.accel_Z = accel_Z;
+		msg.gyro_X = gyro_X;
+		msg.gyro_Y = gyro_Y;
+		msg.gyro_Z = gyro_Z;
 		msg.t_stamp = ros::Time::now();
 		
 		sensor_pub.publish(msg);
 
 		ros::spinOnce();
-		ros::Duration(0.1).sleep();
+		//ros::Duration(0.1).sleep();
 	}
 	return 0;
 }

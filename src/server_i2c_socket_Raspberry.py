@@ -5,10 +5,16 @@ import time
 import numpy
 import socket
 import smbus
+from thread import *
 
 #Socket address
 HOST = '192.168.0.55'
 PORT = 8888
+
+OKBLUE = '\033[94m'
+OKGREEN = '\033[92m'
+WARNING = '\033[93m'
+ENDC = '\033[0m'
 
 #i2c addresses
 arduino_address = 0x04
@@ -47,17 +53,17 @@ s.bind((HOST, PORT))
 print 'Socket bind succesful'
 
 s.listen(10) #number of tolerable unaccepted connections
-c, addr = s.accept()
-print 'Connected with ' + addr[0] + ':' + str(addr[1])
-## Socket configuration end
 
 
-state = 0
-## Main loop
-while(1):
-	try:
+def client_thread(c):
+        print OKBLUE + 'Client connected' + ENDC
+        count = 0
+        while(1):
+	        print OKBLUE + 'Trhead execution count = ' + str(count) + ENDC
+                count = count +1
+
 		#print 'Reading from Arduino ...'
-		#print 'Ultrasound start'
+		#print 'Ultrasound'
 		bus.write_byte(arduino_address, 100)
 
 		low = bus.read_byte(arduino_address)
@@ -67,10 +73,7 @@ while(1):
 		#print 'low =' + str(low)
 		#print 'high =' + str(high)
 		#print 'distance_U =' + str(distance_U)
-	except:
-		print "An error has occurred while reading Ultrasound"
 	
-	try:
 		#print 'Accelerometer'
 		accel_X = read_word(accel_address, 0x3b)
 		accel_Y = read_word(accel_address, 0x3d)
@@ -81,18 +84,15 @@ while(1):
 		gyro_Y = read_word(accel_address, 0x45)
 		gyro_Z = read_word(accel_address, 0x47)
 	
-		print distance_U
-		print accel_X
-		print accel_Y
-		print accel_Z
-		print gyro_X
-		print gyro_Y
-		print gyro_Z
+		print OKBLUE + 'distance_U =' + str(distance_U) + ENDC
+		print OKBLUE + 'accel_X =' + str(accel_X) + ENDC
+		print OKBLUE + 'accel_Y =' + str(accel_Y) + ENDC
+		print OKBLUE + 'accel_Z =' + str(accel_Z) + ENDC
+		print OKBLUE + 'gyro_X =' + str(gyro_X) + ENDC
+		print OKBLUE + 'gyro_Y =' + str(gyro_Y) + ENDC
+		print OKBLUE + 'gyro_Z =' + str(gyro_Z) + ENDC
 		print " "
-	except:
-		print "An error has occurred while reading IMU"
 	
-	try:		
 		state = ord(c.recv(1024))-10
 		c.send(str(distance_U))
 		c.recv(1024)
@@ -114,16 +114,18 @@ while(1):
 
 			bus.write_byte(arduino_address, x)
 			bus.write_byte(arduino_address, pwm_value)
-			print x
-			print pwm_value
+			print OKBLUE + 'pwm[' + str(x) + '] = '+ str(pwm_value) + ENDC
 			
 
-	except:
-		print 'Connection lost'
-		s.listen(10)
-		c, addr = s.accept()
+	
+        c.close()
 
-c.close()
+while(1):
+        c, addr = s.accept()
+        print 'Connected with ' + addr[0] + ':' + str(addr[1])
+        
+        start_new_thread(client_thread,(c,))
+
 s.close()
 
 GPIO.cleanup()
