@@ -1,5 +1,11 @@
 
 float64 distance_U
+int32 X
+int32 Y
+int32 Z
+int32 vel_X
+int32 vel_Y
+int32 vel_Z
 int32 accel_X
 int32 accel_Y
 int32 accel_Z
