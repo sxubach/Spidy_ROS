@@ -18,7 +18,8 @@
 #define PORT 8888
 
 char HOST[16];
-char pwm_values[12] = {60,90,60,5, 45,30,45,20, 60,0,85,60};
+char desired_pwm_values[12] = {60,90,60,5, 45,30,45,20, 60,0,85,60};
+char current_pwm_values[12] = {60,90,60,5, 45,30,45,20, 60,0,85,60};
 float distance_U = 0;
 int accel_X = 0, g_accel_X = 0;
 int accel_Y = 0, g_accel_Y = 0;
@@ -45,7 +46,7 @@ void execute(const communication_pkg::PWMGoalConstPtr& goal, Server* as)
 	char aux[100];
 	
 	for(int i=0;i<12;i++){
-		pwm_values[i] = (*goal).pwm[i];
+		desired_pwm_values[i] = (*goal).pwm[i];
 	}
 	sprintf(aux,"/arduino/pwm service callback executed");
 	write(1,aux,strlen(aux));
@@ -179,14 +180,23 @@ int main(int argc, char** argv)
 			write(s,"ack.",4);
 
 		// PWM
-			for (int i=1;i<=12;i++){	
+			printf("current_pwm_values[] = [");
+			for (int i=1;i<=12;i++){
+				memset(buff,0,strlen(buff));	
 				n = read(s,buff,50);
+				current_pwm_values[i-1] = atoi(buff);
+				printf("%d,",current_pwm_values[i-1]);
 			
-				memset(buff,0,strlen(buff));
-				printf("Sending pwm_values[%d] = %d\n",i-1,pwm_values[i-1]);
-				sprintf(buff,"%d",pwm_values[i-1]);
+				memset(buff,0,strlen(buff));	
+				sprintf(buff,"%d",desired_pwm_values[i-1]);
 				write(s,buff,strlen(buff));
 			}
+			printf("]\n");
+			printf("Sending desired_pwm_values[] = [");
+			for (int i=0;i<=11;i++){		
+				printf("%d,",desired_pwm_values[i]);
+			}
+			printf("]\n");
 			
 			n = read(s,buff,50);
 			memset(buff,0,50);
@@ -201,9 +211,11 @@ int main(int argc, char** argv)
 			printf("gyro_Y = %d\n",gyro_X);
 			printf("gyro_Z = %d\n",gyro_X);
 
+			printf("Sending desired_pwm_values[] = [");
 			for (int i=0;i<=11;i++){		
-				printf("Sending pwm_values[%d] = %d\n",i,pwm_values[i]);
+				printf("%d,",desired_pwm_values[i]);
 			}
+			printf("]\n");
 		}
 
 	// Saving gravity force
@@ -249,6 +261,9 @@ int main(int argc, char** argv)
 		msg.gyro_Y = gyro_Y;
 		msg.gyro_Z = gyro_Z;
 		msg.t_stamp = ros::Time::now();
+		for (int i=0;i<=11;i++){		
+			msg.pwm[i] = current_pwm_values[i];
+		}
 		
 		sensor_pub.publish(msg);
 

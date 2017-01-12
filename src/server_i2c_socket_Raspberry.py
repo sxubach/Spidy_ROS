@@ -24,15 +24,16 @@ accel_Z = 3
 gyro_X = 3
 gyro_Y = 2
 gyro_Z = 1
-pwm=[60,90,60,5, 45,30,45,20, 60,0,85,60]
+current_pwm=[60,90,60,5, 45,30,45,20, 60,0,85,60]
+desired_pwm=[60,90,60,5, 45,30,45,20, 60,0,85,60]
 
 #i2c addresses
 arduino_address = 0x04
 accel_address = 0x68
 
 def read_word(address, register):
-	high = bus.read_byte_data(address, register)
-	low = bus.read_byte_data(address, register+1)
+	high = try_io(lambda: bus.read_byte_data(address, register))
+	low = try_io(lambda: bus.read_byte_data(address, register+1))
 	val = (high << 8) + low
 
 	if (val >= 0x8000):
@@ -106,8 +107,8 @@ def client_thread(c):
 		c.recv(1024)
 
 		for i in range(0, 12):
-			c.send("ack.")
-			pwm[i] = int(c.recv(1024))
+			c.send(str(current_pwm[i]))
+			desired_pwm[i] = int(c.recv(1024))
 		c.send("done")	
         c.close()
 
@@ -121,12 +122,12 @@ while(1):
 
 	while(t1.isAlive()):	
 
-		#print 'Reading from Arduino ...'
+		##print 'Reading from Arduino ...'
 		#print 'Ultrasound'
-		bus.write_byte(arduino_address, 100)
+		try_io(lambda: bus.write_byte(arduino_address, 100))
 
-		low = bus.read_byte(arduino_address)
-		high = bus.read_byte(arduino_address)
+		low = try_io(lambda: bus.read_byte(arduino_address))
+		high = try_io(lambda: bus.read_byte(arduino_address))
 		distance_U = (high << 8) | low
 	
 		#print 'Accelerometer'
@@ -138,12 +139,16 @@ while(1):
 		gyro_X = read_word(accel_address, 0x43)
 		gyro_Y = read_word(accel_address, 0x45)
 		gyro_Z = read_word(accel_address, 0x47)
-
+		
+		#print 'PWM'
 		for i in range(0, 12):
-			try_io(lambda: bus.write_byte(arduino_address, i))
-			try_io(lambda: bus.write_byte(arduino_address, pwm[i]))
-			
-			print 'pwm[' + str(i) + '] = '+ str(pwm[i])
+			# Read current position
+			try_io(lambda: bus.write_byte(arduino_address, 101+i))
+			current_pwm[i] = try_io(lambda: bus.read_byte(arduino_address))
+
+			# Write desired position
+			try_io(lambda: bus.write_byte(arduino_address, i+1))
+			try_io(lambda: bus.write_byte(arduino_address, desired_pwm[i]))	
 	
 		print 'distance_U =' + str(distance_U)
 		print 'accel_X =' + str(accel_X)
@@ -153,6 +158,9 @@ while(1):
 		print 'gyro_Y =' + str(gyro_Y)
 		print 'gyro_Z =' + str(gyro_Z)
 		print " "
+		print 'current_pwm[] = '+ str(current_pwm)
+		print 'desired_pwm[] = '+ str(desired_pwm)
+		print '---'
 
 		time.sleep(0.1)
 s.close()
