@@ -129,7 +129,7 @@ int main(int argc, char** argv)
 		// Comunicating through socket
 		if (raspberry){
 			printf("\n\n\n");
-			sprintf(buff,"%c",char(42));
+			sprintf(buff,"4");
 			write(s,buff,strlen(buff));
 
 		// Ultrasound
@@ -184,10 +184,12 @@ int main(int argc, char** argv)
 			
 				memset(buff,0,strlen(buff));
 				printf("Sending pwm_values[%d] = %d\n",i-1,pwm_values[i-1]);
-				sprintf(buff,"%c",char(pwm_values[i-1]+10));
+				sprintf(buff,"%d",pwm_values[i-1]);
 				write(s,buff,strlen(buff));
 			}
 			
+			n = read(s,buff,50);
+			memset(buff,0,50);
 			s = reconnect(s,n);
 
 		}else{
