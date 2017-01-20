@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 	int time_loop = 0;
 
 	float currentTime = 0;
-	float InputVec[12] = {};//Input vector to the network
+	float InputVec[13] = {};//Input vector to the network
 	float OutputVec[12] = {};//Output vector of the network
 	float StepSize = 20; //Size of the possition change each second
 	float Out_hlim = 180; //Up limit possition
