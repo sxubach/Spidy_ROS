@@ -200,4 +200,6 @@ int findmax(std::vector<gene>); //Finds the maximmum of innovation of a genome
 
 float sigmoid(float value);
 
+float sinus(float value);
+
 #endif // VAR_H_INCLUDED
