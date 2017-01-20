@@ -1,4 +1,3 @@
-
 #include "ros/ros.h"
 #include <stdlib.h>
 #include <ctime>
@@ -23,8 +22,8 @@ int gyro_X = 0;
 int gyro_Y = 0;
 int gyro_Z = 0;
 
-float vel_X=0, vel_Y=0, vel_Z=0; 
-float X=0, Y=0, Z=0; 
+float vel_X=0, vel_Y=0, vel_Z=0;
+float X=0, Y=0, Z=0;
 ros::Time t_stamp;
 
 typedef actionlib::SimpleActionClient<communication_pkg::PWMAction> PWMAction_def;
@@ -47,7 +46,7 @@ void sensorCallback(communication_pkg::sensors msg){
 	gyro_Y = msg.gyro_Y;
 	gyro_Z = msg.gyro_Z;
 	t_stamp = msg.t_stamp;
-	for (int i=0;i<=11;i++){		
+	for (int i=0;i<=11;i++){
 		pwm_current[i] = msg.pwm[i];
 	}
 	printf("Reading sensor data X: %f",X);
