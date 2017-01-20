@@ -24,8 +24,8 @@ accel_Z = 3
 gyro_X = 3
 gyro_Y = 2
 gyro_Z = 1
-current_pwm=[60,90,60,5, 45,30,45,20, 60,0,85,60]
-desired_pwm=[60,90,60,5, 45,30,45,20, 60,0,85,60]
+current_pwm=[60,90,120,5, 45,30,45,20, 60,0,85,60]
+desired_pwm=[60,90,120,5, 45,30,45,20, 60,0,85,60]
 
 #i2c addresses
 arduino_address = 0x04
