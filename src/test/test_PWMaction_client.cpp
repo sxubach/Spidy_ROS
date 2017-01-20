@@ -11,7 +11,7 @@ int main(int argc, char** argv)
 	client.waitForServer();
 
 	communication_pkg::PWMGoal goal;
-	char pwm_desired[12] = {60,90,60,65, 45,30,45,20, 60,0,85,60};
+	char pwm_desired[12] = {60,90,120,65, 45,30,45,20, 60,0,85,60};
 
 	for (int i=0;i<12;i++){
 		goal.pwm[i] = pwm_desired[i];

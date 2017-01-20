@@ -11,9 +11,11 @@
 #include <communication_pkg/sensors.h>
 #include <communication_pkg/PWMAction.h>
 
+#include "Algorithm_lib/debug_algorithm.h"
 
-char pwm_desired[12]={60,90,60,65, 45,30,45,20, 60,0,85,60};
-char pwm_current[12]={60,90,60,65, 45,30,45,20, 60,0,85,60};
+char pwm_rest[12]={60,90,120,65, 45,30,45,20, 60,0,85,60};
+char pwm_desired[12]={60,90,120,65, 45,30,45,20, 60,0,85,60};
+char pwm_current[12]={60,90,120,65, 45,30,45,20, 60,0,85,60};
 float distance_U = 0;
 int accel_X = 0;
 int accel_Y = 0;
@@ -28,7 +30,7 @@ ros::Time t_stamp;
 
 typedef actionlib::SimpleActionClient<communication_pkg::PWMAction> PWMAction_def;
 float ts = 0.1;
-int time_loop_limit = 1000; //(1000*ts)=10 sec
+int time_loop_limit = 100; //(1000*ts)=10 sec
 
 //TODO: callbak not done properly, check tutorial
 
@@ -51,7 +53,6 @@ void sensorCallback(communication_pkg::sensors msg){
 	for (int i=0;i<=11;i++){
 		pwm_current[i] = msg.pwm[i];
 	}
-	printf("sensorCallback\n");
 }
 
 int main(int argc, char **argv)
@@ -135,8 +136,9 @@ int main(int argc, char **argv)
 		time_loop = 0;
 
 
-		memset(pwm_desired, 0, sizeof(pwm_desired));
-		memset(pwm_current, 0, sizeof(pwm_current));
+		//memset(pwm_desired, 0, sizeof(pwm_desired));
+		//memset(pwm_current, 0, sizeof(pwm_current));
+		memcpy(pwm_desired,pwm_rest, 12);
 
 
 		while(time_loop<time_loop_limit){
@@ -149,7 +151,6 @@ int main(int argc, char **argv)
 			InputVec[12] = currentTime;
 
 			Spidy_pool.evaluateCurrent(InputVec,OutputVec);
-
 
 			//Process outputs
 			for(int i=0;i<12;i++)
@@ -165,7 +166,6 @@ int main(int argc, char **argv)
 				if(pwm_desired[i]<Out_llim)
 					pwm_desired[i]=Out_llim;
 			}
-			printf("\n");
 
 			communication_pkg::PWMGoal goal;
 			for (int i=0;i<12;i++){
@@ -173,8 +173,6 @@ int main(int argc, char **argv)
 				//printf("goal.pwm[%d] = %d\n",i,pwm_desired[i]);
 			}
 			Actuator.sendGoal(goal);
-			printf("goal sent\n");
-
 
 
 			ros::spinOnce();
@@ -214,7 +212,7 @@ int main(int argc, char **argv)
 				Spidy_pool.currentGenome = 0;
     		}
 		}else{
-      		Spidy_pool.currentGenome++;
+      			Spidy_pool.currentGenome++;
 		}
 
 	}

@@ -1,0 +1,7 @@
+<launch>
+	<node name="Sinus_node" 
+		type="Sinus_node" 
+		pkg ="communication_pkg" 
+		output="screen">
+	</node>
+</launch>

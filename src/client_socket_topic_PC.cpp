@@ -18,8 +18,8 @@
 #define PORT 8888
 
 char HOST[16];
-char desired_pwm_values[12] = {60,90,60,5, 45,30,45,20, 60,0,85,60};
-char current_pwm_values[12] = {60,90,60,5, 45,30,45,20, 60,0,85,60};
+char desired_pwm_values[12] = {60,90,120,5, 45,30,45,20, 60,0,85,60};
+char current_pwm_values[12] = {60,90,120,5, 45,30,45,20, 60,0,85,60};
 float distance_U = 0;
 int accel_X = 0, g_accel_X = 0;
 int accel_Y = 0, g_accel_Y = 0;
