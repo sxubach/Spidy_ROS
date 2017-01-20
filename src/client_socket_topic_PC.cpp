@@ -48,8 +48,7 @@ void execute(const communication_pkg::PWMGoalConstPtr& goal, Server* as)
 	for(int i=0;i<12;i++){
 		desired_pwm_values[i] = (*goal).pwm[i];
 	}
-	sprintf(aux,"/arduino/pwm service callback executed");
-	write(1,aux,strlen(aux));
+	//printf("/arduino/pwm service callback executed");
 
 	as->setSucceeded();
 }
@@ -211,7 +210,7 @@ int main(int argc, char** argv)
 			printf("gyro_Y = %d\n",gyro_X);
 			printf("gyro_Z = %d\n",gyro_X);
 
-			printf("Sending desired_pwm_values[] = [");
+			printf("desired_pwm_values[] = [");
 			for (int i=0;i<=11;i++){		
 				printf("%d,",desired_pwm_values[i]);
 			}
@@ -229,7 +228,7 @@ int main(int argc, char** argv)
 	// Preprocesing
 		end = ros::Time::now();
 		T = end.toSec() - begin.toSec();
-		printf("execution time T=%f",T);
+		printf("execution time T=%f\n",T);
 
 		accel_X = accel_X - g_accel_X;
 		vel_X = vel_X + T*accel_X;
@@ -268,7 +267,7 @@ int main(int argc, char** argv)
 		sensor_pub.publish(msg);
 
 		ros::spinOnce();
-		//ros::Duration(0.1).sleep();
+		ros::Duration(0.1).sleep();
 	}
 	return 0;
 }

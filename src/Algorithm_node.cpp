@@ -28,8 +28,10 @@ float X=0, Y=0, Z=0;
 ros::Time t_stamp;
 
 typedef actionlib::SimpleActionClient<communication_pkg::PWMAction> PWMAction_def;
-float ts = 0.01;
+float ts = 0.1;
 int time_loop_limit = 1000; //(1000*ts)=10 sec
+
+//TODO: callbak not done properly, check tutorial
 
 void sensorCallback(communication_pkg::sensors msg){
   //Sensor
@@ -50,7 +52,7 @@ void sensorCallback(communication_pkg::sensors msg){
 	for (int i=0;i<=11;i++){		
 		pwm_current[i] = msg.pwm[i];
 	}
-	printf("Reading sensor data X: %f",X);
+	printf("sensorCallback\n");
 }
 
 void sendPWM(char *pwm,PWMAction_def* Actuator)
@@ -59,7 +61,7 @@ void sendPWM(char *pwm,PWMAction_def* Actuator)
 
 	for (int i=0;i<12;i++){
 		goal.pwm[i] = pwm[i];
-		//printf("goal.pwm[%d] = %d\n",i,pwm_desired[i]);
+		printf("goal.pwm[%d] = %d\n",i,pwm_desired[i]);
 	}
 	Actuator->sendGoal(goal);
 }
@@ -84,7 +86,7 @@ int main(int argc, char **argv)
 	float currentTime = 0;
 	float InputVec[12] = {};//Input vector to the network
 	float OutputVec[12] = {};//Output vector of the network
-	float StepSize = 5; //Size of the possition change in a ts
+	float StepSize = 20; //Size of the possition change in a ts
 	float Out_hlim = 180; //Up limit possition
 	float Out_llim = -180; //Down limit positon
 
@@ -102,7 +104,7 @@ int main(int argc, char **argv)
 
 	//Initialize actionlib
 
-	PWMAction_def Actuator("/action/pwm", true);
+	PWMAction_def Actuator("/arduino/pwm", true);
 	//Actuator.waitForServer();
 
 	#ifdef DEBUG_H_INCLUDED
@@ -144,12 +146,7 @@ int main(int argc, char **argv)
 
 		time_loop = 0;
 
-		//memset(pwm_current, 0, sizeof(pwm_current));
-
 		while(time_loop<time_loop_limit){
-
-			//TODO: Sensor read implementation
-
 			for(int i=0;i<12;i++)
 			{
 				InputVec[i]=pwm_current[i];
@@ -164,6 +161,7 @@ int main(int argc, char **argv)
 			for(int i=0;i<12;i++)
 			{
 				OutputVec[i] = OutputVec[i]*StepSize;
+    				printf("%f,",OutputVec[i]);
 
 				pwm_desired[i] += OutputVec[i]*ts;
 
@@ -173,21 +171,15 @@ int main(int argc, char **argv)
 				if(pwm_current[i]<Out_llim)
 					pwm_desired[i]=Out_llim;
 			}
-
-			//TODO: Send pwm(pwm_current)
-			//Que cony envio???
-
-			//sendPWM(pwm_desired,Actuator);
-
+			printf("\n");
 
 			communication_pkg::PWMGoal goal;
-
 			for (int i=0;i<12;i++){
 				goal.pwm[i] = pwm_desired[i];
 				//printf("goal.pwm[%d] = %d\n",i,pwm_desired[i]);
 			}
 			Actuator.sendGoal(goal);
-
+			printf("goal sent\n");
 
 
 
