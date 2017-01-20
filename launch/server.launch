@@ -1,7 +1,7 @@
 <launch>
 	<param name="raspberry" value="true"/>
-	<param name="HOST" value="192.168.0.55"/>
-	<!--param name="HOST" value="127.0.0.1"/-->
+	<!--param name="HOST" value="192.168.0.55"/-->
+	<param name="HOST" value="127.0.0.1"/>
 
 	<node pkg ="communication_pkg"
 		type="socket_client_topic_server"
