@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 	float currentTime = 0;
 	float InputVec[12] = {};//Input vector to the network
 	float OutputVec[12] = {};//Output vector of the network
-	float StepSize = 20; //Size of the possition change in a ts
+	float StepSize = 20; //Size of the possition change each second
 	float Out_hlim = 180; //Up limit possition
 	float Out_llim = -180; //Down limit positon
 
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 	#endif //DEBUG_H_INCLUDED
 
 	//Initalization of the pool
-	Pool Spidy_pool(12,12);
+	Pool Spidy_pool(13,12);
 
 	#ifdef DEBUG_H_INCLUDED
 	ROS_INFO("Pool created");
@@ -145,13 +145,19 @@ int main(int argc, char **argv)
 
 		time_loop = 0;
 
+
+		memset(pwm_desired, 0, sizeof(pwm_desired));
+		memset(pwm_current, 0, sizeof(pwm_current));
+
+
 		while(time_loop<time_loop_limit){
 			for(int i=0;i<12;i++)
 			{
-				InputVec[i]=pwm_current[i];
+				InputVec[i]=pwm_desired[i];
 			}
 
 			currentTime = time_loop*ts;
+			InputVec[12] = currentTime;
 
 			Spidy_pool.evaluateCurrent(InputVec,OutputVec);
 
@@ -160,14 +166,14 @@ int main(int argc, char **argv)
 			for(int i=0;i<12;i++)
 			{
 				OutputVec[i] = OutputVec[i]*StepSize;
-    				printf("%f,",OutputVec[i]);
+    				//printf("%f,",OutputVec[i]);
 
 				pwm_desired[i] += OutputVec[i]*ts;
 
-				if(pwm_current[i]>Out_hlim)
+				if(pwm_desired[i]>Out_hlim)
 					pwm_desired[i]=Out_hlim;
 
-				if(pwm_current[i]<Out_llim)
+				if(pwm_desired[i]<Out_llim)
 					pwm_desired[i]=Out_llim;
 			}
 			printf("\n");
@@ -198,15 +204,22 @@ int main(int argc, char **argv)
 		if(Spidy_pool.SpeciesVec[Spidy_pool.currentSpecies].GenomesVec.size()==Spidy_pool.currentGenome+1)
 		{
     		if(Spidy_pool.SpeciesVec.size()==Spidy_pool.currentSpecies+1){
-				#ifdef DEBUG_ALGO_H_INCLUDED
-				ROS_INFO("Generating new generation...");
-				#endif //DEBUG_ALGO_H_INCLUDED
+					#ifdef DEBUG_ALGO_H_INCLUDED
+					ROS_INFO("Generating new generation...");
+					#endif //DEBUG_ALGO_H_INCLUDED
 
-				Spidy_pool.newGeneration();
+	        std::stringstream ss2;
+	        ss2 << Spidy_pool.generation;
+	        std::string generationstr = ss2.str();
+	        std::string textfile = "Generations/TestGen" + generationstr +".txt";
 
-				#ifdef DEBUG_ALGO_H_INCLUDED
-				ROS_INFO("New Generation: %d",Spidy_pool.generation);
-				#endif //DEBUG_ALGO_H_INCLUDED
+	        customWriteFile(Spidy_pool,textfile);
+
+					Spidy_pool.newGeneration();
+
+					#ifdef DEBUG_ALGO_H_INCLUDED
+					ROS_INFO("New Generation: %d",Spidy_pool.generation);
+					#endif //DEBUG_ALGO_H_INCLUDED
 			}else{
 				Spidy_pool.currentSpecies ++;
 				Spidy_pool.currentGenome = 0;
