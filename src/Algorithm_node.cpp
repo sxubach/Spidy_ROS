@@ -55,17 +55,6 @@ void sensorCallback(communication_pkg::sensors msg){
 	printf("sensorCallback\n");
 }
 
-void sendPWM(char *pwm,PWMAction_def* Actuator)
-{
-	communication_pkg::PWMGoal goal;
-
-	for (int i=0;i<12;i++){
-		goal.pwm[i] = pwm[i];
-		printf("goal.pwm[%d] = %d\n",i,pwm_desired[i]);
-	}
-	Actuator->sendGoal(goal);
-}
-
 int main(int argc, char **argv)
 {
 
