@@ -176,6 +176,15 @@ int main(int argc, char **argv)
 	//Spidy_pool.initializePool();
 
 	Spidy_pool = customReadFile();
+	Spidy_pool.currentSpecies = 0;
+	Spidy_pool.currentGenome = 0;
+
+	std::stringstream ss2;
+	ss2 << Spidy_pool.generation;
+	std::string generationstr = ss2.str();
+	std::string textfile = "Generations/TestGen" + generationstr +".txt";
+
+	customWriteFile(Spidy_pool,textfile);
 
 	#ifdef DEBUG_H_INCLUDED
 	ROS_INFO("Pool initialized");
@@ -228,9 +237,8 @@ int main(int argc, char **argv)
 			Spidy_pool.evaluateCurrent(InputVec,OutputVec);
 
 
-			//Process outputs
-			for(int i=0;i<4;i++)
-			{
+			/*//Process outputs
+			for(int i=0;i<4;i++){
 				OutputVec[i] = OutputVec[i]*StepSize;
 			}
 
@@ -258,14 +266,21 @@ int main(int argc, char **argv)
 			}
 			if((-pwm_desired[5]+pwm_desired[4])>-1){
 				pwm_desired[5] += OutputVec[1]*ts;
-			}
+			}*/
 
-			pwm_desired[6] += OutputVec[2]*ts;
+			pwm_desired[0] += OutputVec[1]*ts;
+			pwm_desired[1] += OutputVec[3]*ts;
+			pwm_desired[2] += OutputVec[0]*ts;
+			pwm_desired[3] += OutputVec[2]*ts;
+			pwm_desired[4] += OutputVec[0]*ts;
+			pwm_desired[5] += OutputVec[2]*ts;
+
+			pwm_desired[6] += OutputVec[1]*ts;
 			pwm_desired[7] += OutputVec[3]*ts;
-			pwm_desired[8] += OutputVec[2]*ts;
+			pwm_desired[8] += OutputVec[1]*ts;
 			pwm_desired[9] += OutputVec[3]*ts;
-			pwm_desired[10] += OutputVec[2]*ts;
-			pwm_desired[11] += OutputVec[3]*ts;
+			pwm_desired[10] += OutputVec[0]*ts;
+			pwm_desired[11] += OutputVec[2]*ts;
 
 			for(int i=0;i<12;i++)
 			{
