@@ -173,7 +173,11 @@ int main(int argc, char **argv)
 	ROS_INFO("Pool created");
 	#endif //DEBUG_H_INCLUDED
 
-	Spidy_pool.initializePool();
+	//Spidy_pool.initializePool();
+
+	Spidy_pool = customReadFile();
+	Spidy_pool.currentSpecies = 0;
+	Spidy_pool.currentGenome = 0;
 
 	#ifdef DEBUG_H_INCLUDED
 	ROS_INFO("Pool initialized");

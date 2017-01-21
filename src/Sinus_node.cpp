@@ -129,9 +129,10 @@ int main(int argc, char **argv)
 		
 
 		//Process outputs
-		for(int i=0;i<12;i++)
+		for(int i=0;i<6;i++)
 		{
-			pwm_desired[i] += 1;
+			pwm_desired[2*i] = 90*sin(time_loop)+90;
+			pwm_desired[2*i+1] = 90*cos(time_loop)+90;
 
 			if(pwm_desired[i]>Out_hlim)
 				pwm_desired[i]=Out_hlim;
