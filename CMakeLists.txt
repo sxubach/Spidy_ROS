@@ -21,7 +21,7 @@ FILES
 add_message_files(
   FILES
   sensors.msg
-) 
+)
 
 generate_messages(DEPENDENCIES
   actionlib_msgs
@@ -49,6 +49,9 @@ target_link_libraries(test_pwm_client ${catkin_LIBRARIES})
 
 add_executable(Algorithm_node src/Algorithm_node.cpp src/Algorithm_lib/NEAT.cpp)
 target_link_libraries(Algorithm_node ${catkin_LIBRARIES})
+
+add_executable(Algorithm_node_2leg src/Algorithm_node_2leg.cpp src/Algorithm_lib/NEAT.cpp)
+target_link_libraries(Algorithm_node_2leg ${catkin_LIBRARIES})
 
 add_executable(Sinus_node src/Sinus_node.cpp)
 target_link_libraries(Sinus_node ${catkin_LIBRARIES})
