@@ -24,19 +24,13 @@ float distance_U = 0;
 int accel_X = 0, g_accel_X = 0;
 int accel_Y = 0, g_accel_Y = 0;
 int accel_Z = 0, g_accel_Z = 0;
-int gyro_X = 0, g_gyro_X = 0;
-int gyro_Y = 0, g_gyro_Y = 0;
-int gyro_Z = 0, g_gyro_Z = 0;
-
-float vel_X=0, vel_Y=0, vel_Z=0; 
-float X=0, Y=0, Z=0; 
-float T = 0.5;
+int gyro_X = 0;
+int gyro_Y = 0;
+int gyro_Z = 0;
 
 int s,n=1;
 struct sockaddr_in addr;
-bool raspberry = false, first = true;
-
-ros::Time begin, end;
+bool raspberry = false;
 
 
 typedef actionlib::SimpleActionServer<communication_pkg::PWMAction> Server;
@@ -123,7 +117,6 @@ int main(int argc, char** argv)
 	// Socket communication
 	s = connect_socket();
 	
-	begin = ros::Time::now();
 	// Main loop
 	while(1){	
 		// Comunicating through socket
@@ -217,42 +210,8 @@ int main(int argc, char** argv)
 			printf("]\n");
 		}
 
-	// Saving gravity force
-		if (first){
-			first = false;
-			g_accel_X = accel_X;
-			g_accel_Y = accel_Y;
-			g_accel_Z = accel_Z;
-		}
-	
-	// Preprocesing
-		end = ros::Time::now();
-		T = end.toSec() - begin.toSec();
-		printf("execution time T=%f\n",T);
-
-		accel_X = accel_X - g_accel_X;
-		vel_X = vel_X + T*accel_X;
-		X = X + T*vel_X;
-
-		accel_Y = accel_Y - g_accel_Y;
-		vel_Y = vel_Y + T*accel_Y;
-		Y = Y + T*vel_Y;
-
-		accel_Z = accel_Z - g_accel_Z;
-		vel_Z = vel_Z + T*accel_Z;
-		Z = Z + T*vel_Z;
-		
-		begin = ros::Time::now();
-
-
 	// Updating publisher values
 		msg.distance_U = distance_U;
-		msg.X = X;
-		msg.Y = Y;
-		msg.Z = Z;
-		msg.vel_X = vel_X;
-		msg.vel_Y = vel_Y;
-		msg.vel_Z = vel_Z;
 		msg.accel_X = accel_X;
 		msg.accel_Y = accel_Y;
 		msg.accel_Z = accel_Z;

@@ -11,13 +11,14 @@
 
 #define PI 3.141592653589793238462643
 
+//char pwm_rest[12]={60,90,120,65, 45,30,45,20, 60,0,85,60};
 char pwm_rest[12]={60,90,120,65, 45,30,45,20, 60,0,85,60};
 char pwm_desired[12]={60,90,120,65, 45,30,45,20, 60,0,85,60};
 char pwm_current[12]={60,90,120,65, 45,30,45,20, 60,0,85,60};
 float distance_U = 0;
-int accel_X = 0;
-int accel_Y = 0;
-int accel_Z = 0;
+int accel_X = 0, g_accel_X = 0;
+int accel_Y = 0, g_accel_Y = 0;
+int accel_Z = 0, g_accel_Z = 0;
 int gyro_X = 0;
 int gyro_Y = 0;
 int gyro_Z = 0;
@@ -26,21 +27,18 @@ float vel_X=0, vel_Y=0, vel_Z=0;
 float X=0, Y=0, Z=0;
 ros::Time t_stamp;
 
+bool first = true;
+ros::Time begin, end;
+float T = 0.5;
+
 typedef actionlib::SimpleActionClient<communication_pkg::PWMAction> PWMAction_def;
 float ts = 0.1;
 char leg_group_1, leg_group_2;
 
-//TODO: callbak not done properly, check tutorial
 
 void sensorCallback(communication_pkg::sensors msg){
   //Sensor
 	distance_U = msg.distance_U;
-	X = msg.X;
-	Y = msg.Y;
-	Z = msg.Z;
-	vel_X = msg.vel_X;
-	vel_Y = msg.vel_Y;
-	vel_Z = msg.vel_Z;
 	accel_X = msg.accel_X;
 	accel_Y = msg.accel_Y;
 	accel_Z = msg.accel_Z;
@@ -51,7 +49,36 @@ void sensorCallback(communication_pkg::sensors msg){
 	for (int i=0;i<=11;i++){
 		pwm_current[i] = msg.pwm[i];
 	}
+
+	// Saving gravity force
+	if (first){
+		first = false;
+		g_accel_X = accel_X;
+		g_accel_Y = accel_Y;
+		g_accel_Z = accel_Z;
+	}
+	
+	// Preprocesing
+	end = ros::Time::now();
+	T = end.toSec() - begin.toSec();
+	printf("execution time T=%f\n",T);
+
+	accel_X = accel_X - g_accel_X;
+	vel_X = vel_X + T*accel_X;
+	X = X + T*vel_X;
+
+	accel_Y = accel_Y - g_accel_Y;
+	vel_Y = vel_Y + T*accel_Y;
+	Y = Y + T*vel_Y;
+
+	accel_Z = accel_Z - g_accel_Z;
+	vel_Z = vel_Z + T*accel_Z;
+	Z = Z + T*vel_Z;
+	
+	begin = ros::Time::now();
+
 }
+
 
 int main(int argc, char **argv)
 {
