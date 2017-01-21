@@ -13,7 +13,7 @@
 
 #include "Algorithm_lib/debug_algorithm.h"
 
-#define avg_window 10
+#define avg_window 20
 
 char pwm_rest[12]={60,90,120,65, 45,30,45,20, 60,0,85,60};
 char pwm_desired[12]={60,90,120,65, 45,30,45,20, 60,0,85,60};
@@ -22,18 +22,21 @@ float distance_U = 0;
 int accel_X = 0, sensor_accel_X = 0, g_accel_X = 0, old_accel_X[avg_window];
 int accel_Y = 0, sensor_accel_Y = 0, g_accel_Y = 0, old_accel_Y[avg_window];
 int accel_Z = 0, sensor_accel_Z = 0, g_accel_Z = 0, old_accel_Z[avg_window];
-int gyro_X = 0;
-int gyro_Y = 0;
-int gyro_Z = 0;
+int gyro_X = 0, sensor_gyro_X=0, g_gyro_X = 0, old_gyro_X[avg_window];
+int gyro_Y = 0, sensor_gyro_Y=0, g_gyro_Y = 0, old_gyro_Y[avg_window];
+int gyro_Z = 0, sensor_gyro_Z=0, g_gyro_Z = 0, old_gyro_Z[avg_window];
+
+//int caca;
 
 float vel_X=0, vel_Y=0, vel_Z=0;
 float X=0, Y=0, Z=0;
+float rot_X=0, rot_Y=0, rot_Z=0;
 ros::Time t_stamp;
 
 bool first = true;
 int fill_avg = 0;
 ros::Time begin, end;
-float T = 0.5;
+float T = 0.1;
 
 typedef actionlib::SimpleActionClient<communication_pkg::PWMAction> PWMAction_def;
 float ts = 0.1;
@@ -42,7 +45,7 @@ int time_loop_limit = 100; //(1000*ts)=10 sec
 int time_loop = 0;
 
 float currentTime = 0;
-float InputVec[13] = {};//Input vector to the network
+float InputVec[16] = {};//Input vector to the network
 float OutputVec[12] = {};//Output vector of the network
 float StepSize2 = 20; //Size of the possition change each second
 float Out_hlim = 180; //Up limit possition
@@ -55,35 +58,55 @@ void set_zeros(){
 	accel_X = 0; sensor_accel_X = 0; g_accel_X = 0;
 	accel_Y = 0; sensor_accel_Y = 0; g_accel_Y = 0;
 	accel_Z = 0; sensor_accel_Z = 0; g_accel_Z = 0;
-	gyro_X = 0;
-	gyro_Y = 0;
-	gyro_Z = 0;
+	gyro_X = 0, sensor_gyro_X=0, g_gyro_X = 0;
+	gyro_Y = 0, sensor_gyro_Y=0, g_gyro_Y = 0;
+	gyro_Z = 0, sensor_gyro_Z=0, g_gyro_Z = 0;
 
 	vel_X=0; vel_Y=0; vel_Z=0;
 	X=0; Y=0; Z=0;
-
+	rot_X=0, rot_Y=0, rot_Z=0;
+	ROS_INFO("Set initial values");
 }
 
 void avg_filter(){
 	accel_X = sensor_accel_X;
 	accel_Y = sensor_accel_Y;
 	accel_Z = sensor_accel_Z;
-	for (int i=avg_window;i>0;i--){
+
+	gyro_X = sensor_gyro_X;
+	gyro_Y = sensor_gyro_Y;
+	gyro_Z = sensor_gyro_Z;
+
+	for (int i=avg_window-1;i>0;i--){
 		old_accel_X[i] = old_accel_X[i-1];
 		old_accel_Y[i] = old_accel_Y[i-1];
 		old_accel_Z[i] = old_accel_Z[i-1];
 		accel_X += old_accel_X[i];
 		accel_Y += old_accel_Y[i];
 		accel_Z += old_accel_Z[i];
+
+		old_gyro_X[i] = old_gyro_X[i-1];
+		old_gyro_Y[i] = old_gyro_Y[i-1];
+		old_gyro_Z[i] = old_gyro_Z[i-1];
+		gyro_X += old_gyro_X[i];
+		gyro_Y += old_gyro_Y[i];
+		gyro_Z += old_gyro_Z[i];
 	}
 	old_accel_X[0] = sensor_accel_X;
 	old_accel_Y[0] = sensor_accel_Y;
 	old_accel_Z[0] = sensor_accel_Z;
+
+	old_gyro_X[0] = sensor_gyro_X;
+	old_gyro_Y[0] = sensor_gyro_Y;
+	old_gyro_Z[0] = sensor_gyro_Z;
 	
 	accel_X = accel_X/avg_window;
 	accel_Y = accel_Y/avg_window;
 	accel_Z = accel_Z/avg_window;
-	//ROS_INFO("accel_X = %d, g_accel_X = %d, vel_X = %f, X = %f",accel_X,g_accel_X,vel_X,X);
+	
+	gyro_X = gyro_X/avg_window;
+	gyro_Y = gyro_Y/avg_window;
+	gyro_Z = gyro_Z/avg_window;
 }
 
 void double_integrate(){
@@ -93,6 +116,10 @@ void double_integrate(){
 		g_accel_X = accel_X;
 		g_accel_Y = accel_Y;
 		g_accel_Z = accel_Z;
+
+		g_gyro_X = gyro_X;
+		g_gyro_Y = gyro_Y;
+		g_gyro_Z = gyro_Z;
 	}
 	
 	// Preprocesing
@@ -110,9 +137,17 @@ void double_integrate(){
 	accel_Z = accel_Z - g_accel_Z;
 	vel_Z = vel_Z + T*accel_Z;
 	Z = Z + T*vel_Z;
+
+	gyro_X -= g_gyro_X;
+	rot_X += T*gyro_X;
+
+	gyro_Y -= g_gyro_Y;
+	rot_Y += T*gyro_Y;
+
+	gyro_Z -= g_gyro_Z;
+	rot_Z += T*gyro_Z;
 	
 	begin = ros::Time::now();
-	//ROS_INFO("Double integrated");
 }
 
 void sensorCallback(communication_pkg::sensors msg){
@@ -121,9 +156,9 @@ void sensorCallback(communication_pkg::sensors msg){
 	sensor_accel_X = msg.accel_X;
 	sensor_accel_Y = msg.accel_Y;
 	sensor_accel_Z = msg.accel_Z;
-	gyro_X = msg.gyro_X;
-	gyro_Y = msg.gyro_Y;
-	gyro_Z = msg.gyro_Z;
+	sensor_gyro_X = msg.gyro_X;
+	sensor_gyro_Y = msg.gyro_Y;
+	sensor_gyro_Z = msg.gyro_Z;
 	t_stamp = msg.t_stamp;
 	for (int i=0;i<=11;i++){
 		pwm_current[i] = msg.pwm[i];
@@ -132,7 +167,11 @@ void sensorCallback(communication_pkg::sensors msg){
 		fill_avg++;
 	avg_filter();
 	double_integrate();
-	//ROS_INFO("Callback");
+	
+	/*ROS_INFO("gyro_X = %d, g_gyro_X = %d, rot_X = %f",gyro_X,g_gyro_X,rot_X);
+	ROS_INFO("gyro_Y = %d, g_gyro_Y = %d, rot_Y = %f",gyro_Y,g_gyro_Y,rot_Y);
+	ROS_INFO("gyro_Z = %d, g_gyro_Z = %d, rot_Z = %f",gyro_Z,g_gyro_Z,rot_Z);
+	ROS_INFO(" ");*/
 }
 
 int main(int argc, char **argv)
@@ -205,9 +244,8 @@ int main(int argc, char **argv)
 		time_loop = 0;
 
 		memcpy(pwm_desired,pwm_rest, 12);
-		g_accel_X = 0;
-		g_accel_Y = 0;
-		g_accel_Z = 0;
+		g_accel_X = 0; g_accel_Y = 0; g_accel_Z = 0;
+		g_gyro_X = 0; g_gyro_Y = 0; g_gyro_Z = 0;
 		fill_avg=0;
 		
 		while(fill_avg<avg_window){
@@ -219,10 +257,15 @@ int main(int argc, char **argv)
 	
 		while(time_loop<time_loop_limit){
 			for(int i=0;i<12;i++)
-				InputVec[i]=pwm_desired[i];
+				//InputVec[i]=pwm_desired[i];
+				InputVec[i]=pwm_current[i];
+			
+			InputVec[12] = vel_X;
+			InputVec[13] = vel_Y;
+			InputVec[14] = vel_Z;
 
 			currentTime = time_loop*ts;
-			InputVec[12] = currentTime;
+			InputVec[15] = currentTime;
 
 			Spidy_pool.evaluateCurrent(InputVec,OutputVec);
 
@@ -255,8 +298,10 @@ int main(int argc, char **argv)
 		}
 
 		//Calculate fitness
-		Fitness = sqrt(X*X+Y*Y+Z*Z);
-		printf("Fitness = %f\n",Fitness);
+		Fitness = sqrt(X*X+Y*Y)/(rot_Z*rot_Z);
+		if (X<0 || Y<0)
+			Fitness = 0;
+		printf("X = %f, Y = %f, Z = %f, Fitness = %f\n",X,Y,Z,Fitness);
 
 		//Evaluation ended
 

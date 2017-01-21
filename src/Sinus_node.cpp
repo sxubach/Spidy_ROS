@@ -123,10 +123,6 @@ int main(int argc, char **argv)
 		currentTime = time_loop*ts;
 		InputVec[12] = currentTime;
 
-		//Spidy_pool.evaluateCurrent(InputVec,OutputVec);
-		//leg_group_1 = sin((time_loop%180)*PI/180);
-		//leg_group_2 = cos((time_loop%180)*PI/180);
-		
 
 		//Process outputs
 		for(int i=0;i<6;i++)

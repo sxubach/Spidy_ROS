@@ -45,7 +45,7 @@ def read_word(address, register):
 def init_accelerometer():
 	bus.write_byte_data(accel_address, 0x6B, 0) #wake up sensor - power management
 
-def try_io(call, tries=10):
+def try_io(call, tries=250):
     assert tries > 0
     error = None
     result = None
@@ -55,6 +55,8 @@ def try_io(call, tries=10):
             result = call()
         except IOError as e:
             error = e
+            print 'failed to com num' + str(tries)
+            time.sleep(0.02)
             tries -= 1
         else:
             break
